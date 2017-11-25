@@ -2,9 +2,14 @@ from flask import Flask
 from flask_script import Manager, Server
 from flask_cache import Cache
 import os, base64, json, subprocess
-
+import re
+import requests
 app = Flask(__name__)
 manager = Manager(app)
+
+Main_Server = ""  # Logs are sent to this server
+Host_logger = 'localhost'
+Port_logger = 5000
 
 
 @app.route('/get_logs', methods=['GET'])
@@ -14,12 +19,13 @@ def get_logs():
     else:
         new_logs_access = open("access.log")
         storage_log_access = open("access_save.log", "a")
-
+        addrs = []
         log_data = {"status": True, "data": []}
         for line in new_logs_access:
             storage_log_access.write(line)
             log_data["data"].append(base64.b64encode(line))
-
+            addrs.append(re.findall(r'([0-9] +\.[0-9] +\.[0-9] +\.[0-9] +):([0-9]+)', line)[0])
+        alert(addrs)
         new_logs_access.close()
         os.remove("access.log")
 
@@ -40,6 +46,15 @@ def status():
         return "False"
 
 
+def alert(addr):
+    unique_addr = []
+    for i in addr:
+        if i not in unique_ddr:
+            unique_addr.append(i)
+    for ip_port in unique_addr:
+        r = requests.post(Main_Server, data={'alert': ip_port})
+
+
 if __name__ == '__main__':
-    manager.add_command("runserver", Server(use_debugger=True, host='localhost', port=5000))
+    manager.add_command("runserver", Server(use_debugger=True, host=Host_logger, port=Port_logger))
     manager.run()
