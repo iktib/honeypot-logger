@@ -116,7 +116,7 @@ class BapRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             if len(authparts) == 2 and authparts[0] == 'Basic':
                 try:
                     authdecoded = base64.b64decode(authparts[1])
-                except TypeError, e:
+                except TypeError:
                     self.errorlogger.log(
                         '%s:%s DecodeFailure %s',
                         self.address_string(),
@@ -145,13 +145,13 @@ def main():
     # Start listener
     httpd = BaseHTTPServer.HTTPServer(
         (HTTP_ADDR, HTTP_PORT), BapRequestHandler)
-    print "Starting bap on %s:%s" % (HTTP_ADDR, HTTP_PORT)
+    print("Starting bap on %s:%s" % (HTTP_ADDR, HTTP_PORT))
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
         pass
     httpd.server_close()
-    print "bap stopped"
+    print("bap stopped")
 
     # Restore stdout and stderr
     sys.stdout = outsave
